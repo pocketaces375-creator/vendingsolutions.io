@@ -41,7 +41,7 @@ def page(path, title, desc, body, schema=None):
 <link rel="canonical" href="{S['url']}{path}">
 <meta property="og:title" content="{E(title)}"><meta property="og:description" content="{E(desc)}">
 <meta property="og:type" content="website"><meta property="og:url" content="{S['url']}{path}">
-<meta property="og:image" content="{S['url']}/assets/bg2.webp">
+<meta property="og:image" content="{S['url']}/assets/hero-vapor.webp">
 <link rel="icon" href="/assets/favicon.svg">
 <link rel="stylesheet" href="/assets/style.css">
 <script type="application/ld+json">{ld}</script>
