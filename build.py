@@ -8,7 +8,6 @@ Edit site.json for phone numbers, socials and LOCATIONS. Each location becomes i
 local search ranks on. Old WordPress URLs (/services/, /find-our-machines/, /schedule-free-consult/)
 are kept so existing links and rankings carry over. Content recovered from the Apr 2026 site."""
 import html, json, os, re, shutil
-import growth as G
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 S = json.load(open(os.path.join(ROOT, "site.json")))
@@ -42,9 +41,7 @@ def page(path, title, desc, body, schema=None):
 <link rel="canonical" href="{S['url']}{path}">
 <meta property="og:title" content="{E(title)}"><meta property="og:description" content="{E(desc)}">
 <meta property="og:type" content="website"><meta property="og:url" content="{S['url']}{path}">
-<meta property="og:image" content="{S['url']}/assets/og.jpg">
-{f'<meta name="google-site-verification" content="{S["verify"]["google"]}">' if S.get("verify",{}).get("google") else ""}{f'<meta name="msvalidate.01" content="{S["verify"]["bing"]}">' if S.get("verify",{}).get("bing") else ""}
-<meta name="twitter:card" content="summary_large_image">
+<meta property="og:image" content="{S['url']}/assets/hero-vapor.webp">
 <link rel="icon" href="/assets/favicon.svg">
 <link rel="stylesheet" href="/assets/style.css">
 <script type="application/ld+json">{ld}</script>
@@ -55,9 +52,7 @@ def page(path, title, desc, body, schema=None):
 <footer><div class="cols"><div><b>{E(S['name'])}</b><br>Smart vape vending for bars, venues and businesses across {E(S['area'])}.<br>
 <span class="muted">Sale of nicotine products to anyone under 21 is prohibited by Florida law. Proof of age required.</span></div>
 <div><b>Contact</b><br>{phones}<br><a href="mailto:{S['email']}">{S['email']}</a></div>
-<div><b>Pages</b><br>{'<br>'.join(f'<a href="{h}">{t}</a>' for h, t in NAV)}<br><a href="/schedule-free-consult/">Free Consultation</a><br><a href="/guides/">Guides</a><br><a href="/help/">Help with a purchase</a></div>
-<div><b>Areas we serve</b><br>{'<br>'.join(f'<a href="/areas/{slug(c["name"])}/">{c["name"]}</a>' for c in G.CITIES)}</div>
-<div><b>Who we serve</b><br>{'<br>'.join(f'<a href="/venues/{v["slug"]}/">{v["name"]}</a>' for v in G.VENUES)}</div></div>
+<div><b>Pages</b><br>{'<br>'.join(f'<a href="{h}">{t}</a>' for h, t in NAV)}<br><a href="/schedule-free-consult/">Free Consultation</a></div></div>
 <p class="muted">© 2026 {E(S['name'])} · {E(S['legal'])}. All rights reserved. {social}</p></footer>
 {chat}
 </body></html>"""
@@ -171,81 +166,15 @@ def build():
 <button class="btn" type="submit">Schedule consultation</button>
 <p class="muted">Prefer to talk? Call <a href="tel:{tel(S['phones'][0])}">{S['phones'][0]}</a>.</p></form></section>""")
 
-    extra = growth_pages(faq_ld)
     shutil.copyfile(os.path.join(OUT, "index.html"), os.path.join(OUT, "404.html"))
     urls = ["/", "/services/", "/find-our-machines/", "/partners/", "/schedule-free-consult/"] + \
-           [f"/locations/{slug(l['name'])}/" for l in locs] + extra
-    open(os.path.join(OUT, S["indexnow_key"] + ".txt"), "w").write(S["indexnow_key"])
-    open(os.path.join(OUT, "urls.txt"), "w").write("\n".join(S["url"] + u for u in urls) + "\n")
+           [f"/locations/{slug(l['name'])}/" for l in locs]
     open(os.path.join(OUT, "sitemap.xml"), "w").write(
         '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
         + "".join(f"<url><loc>{S['url']}{u}</loc></url>" for u in urls) + "</urlset>\n")
     open(os.path.join(OUT, "robots.txt"), "w").write(f"User-agent: *\nAllow: /\nSitemap: {S['url']}/sitemap.xml\n")
     open(os.path.join(OUT, "CNAME"), "w").write(S["url"].split("//")[1] + "\n")
     print(f"built {len(urls)} pages into {OUT}")
-
-
-def growth_pages(faq_ld):
-    """City, venue-type, guide and QR-help pages (content lives in growth.py). Returns their paths for the sitemap."""
-    out = []
-    crumbs = lambda items: {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
-        {"@type": "ListItem", "position": i, "name": n, "item": S["url"] + u} for i, (n, u) in enumerate(items, 1)]}
-    venue_links = "".join(f'<a class="loc" href="/venues/{v["slug"]}/"><b>{v["name"]}</b></a>' for v in G.VENUES)
-    city_links = "".join(f'<a class="loc" href="/areas/{slug(c["name"])}/"><b>{c["name"]}</b><span>{c["county"]} County</span></a>' for c in G.CITIES)
-    page("/areas/", f"Areas we serve | {S['name']}", "Free smart vape vending machines for bars and venues across Broward, Miami-Dade and Palm Beach counties.",
-         f"""<section class="head"><h1>Areas we serve</h1><p class="lead">We install, stock and service free smart vending machines across South Florida.</p></section>
-<section><div class="locs">{city_links}</div></section>""" + cta(), schema=crumbs([("Home", "/"), ("Areas", "/areas/")]))
-    out.append("/areas/")
-    for c in G.CITIES:
-        u = f"/areas/{slug(c['name'])}/"
-        ld = org_schema() | {"areaServed": {"@type": "City", "name": c["name"], "containedInPlace": {"@type": "AdministrativeArea", "name": c["county"] + " County, Florida"}},
-                             "url": S["url"] + u}
-        page(u, f"Free vape vending machines in {c['name']}, FL | {S['name']}",
-             f"Free smart vape vending machines for bars, lounges and venues in {c['name']}, Florida. Installed, stocked and serviced at no cost, with 24/7 support.",
-             f"""<section class="head"><p class="kicker">{c['county']} County</p><h1>Free vape vending machines in {c['name']}</h1><p class="lead">{c['intro']}</p></section>
-<section class="split"><div><h2>Why {c['name']} venues add a machine</h2><ul class="ticks"><li>Zero cost: we install, stock and service it</li><li>Customers stay instead of leaving for a store</li><li>Built-in age verification, 21+ only</li><li>24/7 customer support line and live chat</li><li>Touchscreen ads for your own events and specials</li></ul></div>
-<div class="panel"><h3>Where we work in {c['name']}</h3><p>Bars and venues around {c['spots']}, and anywhere else in {c['name']}.</p><p><a href="tel:{tel(S['phones'][0])}">Call {S['phones'][0]}</a></p></div></section>
-<section><h2 class="c">Venues we work with</h2><div class="locs">{venue_links}</div></section>""" + cta(f"Get a free machine in {c['name']}"),
-             schema=[ld, crumbs([("Home", "/"), ("Areas", "/areas/"), (c["name"], u)])])
-        out.append(u)
-    page("/venues/", f"Who we serve | {S['name']}", "Smart vape vending for bars, nightclubs, lounges, hotels, entertainment centers and event venues in South Florida.",
-         f"""<section class="head"><h1>Who we serve</h1><p class="lead">Any venue where adults gather and stay a while.</p></section>
-<section><div class="locs">{venue_links}</div></section>""" + cta(), schema=crumbs([("Home", "/"), ("Who we serve", "/venues/")]))
-    out.append("/venues/")
-    for v in G.VENUES:
-        u = f"/venues/{v['slug']}/"
-        pts = "".join(f"<li>{x}</li>" for x in v["points"])
-        page(u, f"Vape vending machines for {v['name'].lower()} | {S['name']}",
-             f"A free smart vape vending machine for {v['name'].lower()} in South Florida: {v['why'][:110]}",
-             f"""<section class="head"><h1>Vape vending for {v['name'].lower()}</h1><p class="lead">{v['why']}</p></section>
-<section class="split"><div><h2>What you get</h2><ul class="ticks">{pts}<li>Installed, stocked and serviced for free</li></ul></div>
-<div class="panel"><h3>Serving South Florida</h3><p>{", ".join(c["name"] for c in G.CITIES)}.</p></div></section>""" + cta(),
-             schema=[org_schema() | {"url": S["url"] + u}, crumbs([("Home", "/"), ("Who we serve", "/venues/"), (v["name"], u)])])
-        out.append(u)
-    gl = "".join(f'<a class="loc" href="/guides/{g["slug"]}/"><b>{g["title"]}</b><span>{g["desc"]}</span></a>' for g in G.GUIDES)
-    page("/guides/", f"Guides for venue owners | {S['name']}", "Straight answers for bar and venue owners about vape vending: legality, revenue, age verification and more.",
-         f"""<section class="head"><h1>Guides for venue owners</h1><p class="lead">Straight answers to what venue owners ask us most.</p></section>
-<section><div class="locs">{gl}</div></section>""" + cta(), schema=crumbs([("Home", "/"), ("Guides", "/guides/")]))
-    out.append("/guides/")
-    for g in G.GUIDES:
-        u = f"/guides/{g['slug']}/"
-        art = {"@context": "https://schema.org", "@type": "Article", "headline": g["title"], "description": g["desc"],
-               "author": {"@type": "Organization", "name": S["name"]}, "publisher": {"@type": "Organization", "name": S["name"]},
-               "mainEntityOfPage": S["url"] + u}
-        page(u, f"{g['title']} | {S['name']}", g["desc"],
-             f"""<section class="head"><p class="kicker"><a href="/guides/">Guides</a></p><h1>{g['title']}</h1><p class="lead">{g['desc']}</p></section>
-<section class="article">{g['body']}</section>""" + cta(), schema=[art, crumbs([("Home", "/"), ("Guides", "/guides/"), (g["title"], u)])])
-        out.append(u)
-    # the QR sticker on every machine points here (?m=<machine code>): help first, then a review ask
-    page("/help/", f"Help with a purchase | {S['name']}",
-         "Need help with a Vending Solutions machine? Get a refund or support 24/7 by phone or live chat.",
-         f"""<section class="head"><h1>Need help with a machine?</h1><p class="lead">We're here 24/7. Most problems, including refunds for a failed purchase, are fixed on the spot.</p>
-<p class="contact"><a class="btn" href="tel:{tel(S['phones'][0])}">Call {S['phones'][0]}</a></p>
-<p class="muted">Or tap <b>Chat with us</b> at the bottom of the screen. Please have the machine code from the sticker ready.</p></section>
-<section class="split"><div><h2>Everything worked?</h2><p>A quick review helps other people find us and helps the venue too. Thank you!</p></div>
-<div class="panel"><h3>Want one at your venue?</h3><p>We install them free. <a href="/schedule-free-consult/">Get in touch</a>.</p></div></section>""")
-    out.append("/help/")
-    return out
 
 
 if __name__ == "__main__":
