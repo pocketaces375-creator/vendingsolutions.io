@@ -26,3 +26,14 @@ jobs:
           path: dist
       - id: deployment
         uses: actions/deploy-pages@v4
+      - name: Tell search engines about every page (IndexNow: Bing, Yandex, Seznam, Naver)
+        continue-on-error: true
+        run: |
+          KEY=$(python3 -c "import json;print(json.load(open('site.json'))['indexnow_key'])")
+          python3 - "$KEY" <<'PY'
+          import json, sys, urllib.request
+          key = sys.argv[1]; urls = open("dist/urls.txt").read().split()
+          body = json.dumps({"host": "vendingsolutions.io", "key": key, "keyLocation": f"https://vendingsolutions.io/{key}.txt", "urlList": urls}).encode()
+          r = urllib.request.urlopen(urllib.request.Request("https://api.indexnow.org/indexnow", data=body, headers={"Content-Type": "application/json"}), timeout=30)
+          print("IndexNow:", r.status, len(urls), "urls")
+          PY

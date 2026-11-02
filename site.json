@@ -2,12 +2,23 @@
   "name": "Vending Solutions",
   "legal": "Venderisgreat LLC",
   "url": "https://vendingsolutions.io",
-  "phones": ["954-806-0287", "954-895-3802"],
+  "phones": [
+    "954-806-0287",
+    "954-895-3802"
+  ],
   "email": "venderisgreat@gmail.com",
   "area": "South Florida",
   "region": "FL",
-  "social": {"facebook": "", "instagram": ""},
+  "social": {
+    "facebook": "",
+    "instagram": ""
+  },
   "support_line": "",
   "chat_widget": "https://fictive-1.tailb48725.ts.net/chat-widget.js",
-  "locations": []
+  "locations": [],
+  "verify": {
+    "google": "",
+    "bing": ""
+  },
+  "indexnow_key": "ee7bfc4e9f3f7afd203b6e3a5cc9d8cb"
 }
