@@ -108,7 +108,7 @@ def build():
 <div class="card"><h3>Real-time advertising</h3><p>The touchscreen plays your videos and pictures to promote events, menu items and more.</p><a href="/services/">Learn more →</a></div></section>
 <section class="split"><div><h2>South Florida's smart vape vending partner</h2><ul class="ticks">{feats}</ul></div>
 <div class="panel"><h3>Always on</h3><p>Every machine reports its stock every minute, restocks automatically, and is backed by a 24/7 customer support line.</p></div></section>
-<section><h2 class="c">How it works</h2><div class="steps">{steps}</div></section>
+<section><h2 class="c">How it works</h2><img class="flow" src="/assets/process-flow.webp" width="750" height="853" loading="lazy" alt="How it works: contact us, order your free unit, book free installation, auto replenishment, get paid, 24/7 customer service. It couldn't be any easier!"></section>
 <section class="faq"><h2 class="c">Frequently asked questions</h2>{faq}</section>
 {cta()}""", schema=[org_schema(), faq_ld])
 
