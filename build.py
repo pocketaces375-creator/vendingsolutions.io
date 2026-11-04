@@ -99,9 +99,9 @@ def build():
     page("/", f"{S['name']} | Free Smart Vape Vending Machines in {S['area']}",
          "Add a new revenue stream at zero cost. Free smart vape vending machines for bars and venues across South Florida: installed, stocked and serviced for free, with 24/7 customer support.",
          f"""<section class="hero"><div class="in"><p class="kicker">Smart vape vending · {E(S['area'])}</p>
-<h1>A new revenue stream for your venue, at <em>zero cost</em></h1>
+<h1>Take advantage of a new revenue stream for <em>zero cost</em></h1>
 <p class="lead">We install, stock and service a smart vending machine at your location for free. You earn. Your customers stay longer.</p>
-<div class="row"><a class="btn" href="/schedule-free-consult/">Schedule a FREE consultation</a><a class="btn ghost" href="tel:{tel(S['phones'][0])}">Call {S['phones'][0]}</a></div></div></section>
+<div class="row"><a class="btn" href="/schedule-free-consult/">Order FREE Now</a><a class="btn ghost" href="tel:{tel(S['phones'][0])}">Call {S['phones'][0]}</a></div></div></section>
 <section class="cards3">
 <div class="card"><h3>Full installation and maintenance</h3><p>We size and design the machine for your business, install it, and service it for free.</p><a href="/services/">Learn more →</a></div>
 <div class="card"><h3>Advanced vending machine</h3><p>A smart machine with products that keep customers at your location longer and bring new ones in.</p><a href="/services/">Learn more →</a></div>
@@ -157,14 +157,33 @@ def build():
     page("/schedule-free-consult/", f"Schedule a Free Consultation | {S['name']}",
          "Book a free consultation to get a smart vape vending machine installed at your venue at no cost.",
          f"""<section class="head"><h1>Schedule your free consultation</h1><p class="lead">Tell us about your venue. We'll learn your goals and recommend the right setup, at no cost and with no obligation.</p></section>
-<section class="formwrap"><form id="consult" class="form" action="mailto:{S['email']}" method="post" enctype="text/plain">
+<section class="formwrap"><form id="consult" class="form">
+<label>What do you need?<select name="kind"><option value="placement">A free machine for my venue</option><option value="callback">Please call me back</option><option value="question">I have a question</option></select></label>
 <label>Name<input name="name" required autocomplete="name"></label>
-<label>Email<input name="email" type="email" required autocomplete="email"></label>
-<label>Company / venue name<input name="company"></label>
+<label>Venue / business name<input name="business" autocomplete="organization"></label>
+<label>City<input name="city" autocomplete="address-level2"></label>
 <label>Phone number<input name="phone" type="tel" autocomplete="tel"></label>
+<label>Email<input name="email" type="email" autocomplete="email"></label>
 <label>Message<textarea name="message" rows="5"></textarea></label>
-<button class="btn" type="submit">Schedule consultation</button>
-<p class="muted">Prefer to talk? Call <a href="tel:{tel(S['phones'][0])}">{S['phones'][0]}</a>.</p></form></section>""")
+<input name="website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">
+<button class="btn" type="submit">Send</button>
+<p id="consult-msg" class="muted" role="status"></p>
+<p class="muted">Prefer to talk? Call <a href="tel:{tel(S['phones'][0])}">{S['phones'][0]}</a>.</p></form>
+<script>
+document.getElementById("consult").addEventListener("submit", async (e) => {{
+  e.preventDefault(); const f = e.target, msg = document.getElementById("consult-msg"), b = f.querySelector("button");
+  const d = Object.fromEntries(new FormData(f).entries());
+  if (!d.phone && !d.email) {{ msg.textContent = "Please add a phone number or email so we can reach you."; return; }}
+  b.disabled = true; msg.textContent = "Sending...";
+  try {{
+    const r = await fetch("{S['api_base']}/cs/inquiry", {{method: "POST", headers: {{"Content-Type": "application/json"}}, body: JSON.stringify(d)}});
+    if (!r.ok) throw new Error(r.status);
+    f.reset(); msg.textContent = "Thanks! We got it and will reach out within one business day.";
+  }} catch (err) {{
+    msg.innerHTML = 'Something went wrong. Please call us or email <a href="mailto:{S['email']}">{S['email']}</a>.';
+  }} finally {{ b.disabled = false; }}
+}});
+</script></section>""")
 
     shutil.copyfile(os.path.join(OUT, "index.html"), os.path.join(OUT, "404.html"))
     urls = ["/", "/services/", "/find-our-machines/", "/partners/", "/schedule-free-consult/"] + \
