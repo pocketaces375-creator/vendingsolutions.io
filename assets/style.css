@@ -62,3 +62,6 @@ footer .cols{display:grid;grid-template-columns:2fr 1fr 1fr;gap:30px;max-width:1
 .top .brand,.top a:first-child{white-space:nowrap}
 }
 @media(max-width:480px){.top .btn{padding:8px 14px;font-size:.8rem}.top{gap:10px}.top .brand,.top a:first-child{font-size:.95rem}}
+.form select{appearance:none;-webkit-appearance:none;width:100%;background:rgba(0,0,0,.35) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2300FFFF' stroke-width='2' fill='none'/%3E%3C/svg%3E") right 14px center no-repeat;border:1px solid var(--line);border-radius:12px;padding:13px 40px 13px 14px;color:var(--ink);font:inherit}
+.form select:focus{outline:2px solid var(--acc);border-color:transparent}
+.form select option{background:#14101f;color:#fff}
