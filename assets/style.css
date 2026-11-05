@@ -42,8 +42,8 @@ footer .cols{display:grid;grid-template-columns:2fr 1fr 1fr;gap:30px;max-width:1
 .cta{background:linear-gradient(135deg,rgba(13,10,22,.82),rgba(40,20,70,.6)),url(/assets/cta-vapor.webp) center/cover!important}
 
 .flow{display:block;width:100%;max-width:520px;height:auto;margin:10px auto 0}
-/* Centered layout (Adam, Nov 4): hero lives in the same centered 1200px column as every other section */
+/* Centered layout (Adam, Nov 4): hero centered with the rest; photo shown big with only a soft edge on the text side */
 @media(min-width:821px){
-.hero{max-width:1200px!important;margin:0 auto;background:linear-gradient(90deg,#0d0a16 0%,#0d0a16 52%,rgba(13,10,22,.8) 58%,rgba(13,10,22,.3) 70%,rgba(13,10,22,0) 82%,rgba(13,10,22,0) 94%,#0d0a16 100%),linear-gradient(180deg,#0d0a16 0%,rgba(13,10,22,0) 18%,rgba(13,10,22,0) 82%,#0d0a16 100%),url(/assets/hero-vapor.webp) right center/auto 100% no-repeat #0d0a16}
+.hero{max-width:1400px!important;margin:0 auto;min-height:min(88vh,860px);background:linear-gradient(90deg,#0d0a16 0%,#0d0a16 43%,rgba(13,10,22,.55) 48%,rgba(13,10,22,0) 55%,rgba(13,10,22,0) 95%,#0d0a16 100%),linear-gradient(180deg,#0d0a16 0%,rgba(13,10,22,0) 7%,rgba(13,10,22,0) 93%,#0d0a16 100%),url(/assets/hero-vapor.webp) right center/auto 100% no-repeat #0d0a16}
 .hero .in{margin-left:0;max-width:540px}
 }
