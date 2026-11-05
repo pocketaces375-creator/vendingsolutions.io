@@ -101,7 +101,7 @@ def build():
          f"""<section class="hero"><div class="in"><p class="kicker">Smart vape vending · {E(S['area'])}</p>
 <h1>Take advantage of a new revenue stream for <em>zero cost</em></h1>
 <p class="lead">We install, stock and service a smart vending machine at your location for free. You earn. Your customers stay longer.</p>
-<div class="row"><a class="btn" href="/schedule-free-consult/">Order FREE Now</a><a class="btn ghost" href="tel:{tel(S['phones'][0])}">Call {S['phones'][0]}</a></div></div></section>
+<div class="row"><a class="btn" href="/schedule-free-consult/">Order FREE Now</a><a class="btn ghost" href="tel:{tel(S['phones'][0])}">Call {S['phones'][0]}</a></div></div><div class="hero-pic"><img src="/assets/hero-vapor.webp" width="1259" height="1400" alt="A customer using a Vending Solutions smart vape machine" fetchpriority="high"></div></section>
 <section class="cards3">
 <div class="card"><h3>Full installation and maintenance</h3><p>We size and design the machine for your business, install it, and service it for free.</p><a href="/services/">Learn more →</a></div>
 <div class="card"><h3>Advanced vending machine</h3><p>A smart machine with products that keep customers at your location longer and bring new ones in.</p><a href="/services/">Learn more →</a></div>
