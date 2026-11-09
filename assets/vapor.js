@@ -8,15 +8,13 @@
   var gl = cv.getContext("webgl", { alpha: false, antialias: false, depth: false, powerPreference: "low-power" });
   if (!gl) { root.classList.add("no-gl"); return; }
 
-  var N = phone ? 6 : 12;
+  var RIB = phone ? 3 : 5;
   var vs = "attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}";
   // Seamless loop: noise is periodic in x and every motion repeats exactly every L seconds,
   // and JS feeds t modulo L, so the drift never resets or cuts.
   var L = 240.0;
-  // Small vapor wisps that rise, sway and dissolve, scattered across the screen.
-  // Each wisp lives k times per 240 s loop (k integer) and respawns at a new random spot only while
-  // fully faded out, and the respawn pattern repeats every loop, so there is never a visible cut.
-  // The layer is fixed to the viewport and ignores page scroll on purpose (comfort).
+  // A few short vapor wisps drifting left -> right (fixed layer, ignores page scroll on purpose). Each one lives in a wrapped x-domain of width W
+  // (screen + off-screen run-up) and moves a whole number of W per loop, so the 240 s loop is seamless.
   var fs = [
     "#ifdef GL_FRAGMENT_PRECISION_HIGH\nprecision highp float;\n#else\nprecision mediump float;\n#endif",
     "uniform vec2 r;uniform float t;",
@@ -24,41 +22,43 @@
     "float h(vec2 p){p=fract(p*vec2(.1031,.1030));p+=dot(p,p.yx+33.33);return fract((p.x+p.y)*p.x);}",
     "float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);",
     " return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+1.),f.x),f.y);}",
-    "vec3 pal(float x){vec3 cy=vec3(0.,1.,1.),bl=vec3(.275,.72,1.),pu=vec3(.61,.30,1.),mg=vec3(.91,.235,.96);",
-    " return x<.3?cy:x<.55?bl:x<.8?pu:mg;}",
+    // x,y in screen units. k = passes per loop, Wr = wrap width (bigger = longer gap before it reappears),
+    // LN = length, sl = slope (diagonal drift), cu = curl strength, m = breathing rate (integer -> loops cleanly)
+    "float ribbon(float x,float y,float k,float y0,float ph,float sl,float Wr,float LN,float cu,float m){",
+    " float tt=TAU*t/L;",
+    " float u=mod(x-Wr*k*t/L+ph*.55,Wr);",
+    " float env=smoothstep(0.,LN*.5,u)*smoothstep(LN,LN*.7,u);",
+    " if(env<=0.)return 0.;",
+    " float a=u/LN;",
+    " float yc=y0+sl*(x-.5)+.05*sin(u*3.6+ph+tt*2.)+.026*sin(u*7.3-tt*3.+ph*1.7)+.01*sin(u*15.-tt*5.+ph);",
+    " float cc=LN*(.35+.25*sin(ph*3.));",                             // a soft eddy somewhere along the wisp
+    " yc+=cu*exp(-pow((u-cc)/.12,2.))*sin((u-cc)*26.+tt*3.+ph);",
+    " float breathe=.7+.3*sin(tt*m+ph*2.);",                           // slow ebb and flow
+    " float w=(.003+.042*(1.-a)*(1.-a))*(.8+.2*sin(tt*(m+1.)+ph))*(.85+.15*breathe);",
+    " vec2 ring=vec2(cos(tt),sin(tt))*1.5;",
+    " float v=0.;",
+    " for(int j=0;j<3;j++){float fj=float(j);",
+    "  float off=(fj-1.)*w*(1.4+4.*(1.-a)*(1.-a))*sin(u*2.4+tt*(1.+fj)+ph+fj*2.);",   // tails split apart
+    "  float d=(y-yc-off)/(w*(1.+.35*fj));",
+    "  float nz=n(vec2(u*6.+fj*5.,d*.35+ph)+ring)*(.4+.8*n(vec2(u*17.-fj*3.,d*.8)+ring.yx));",
+    "  float feather=mix(.25+1.2*nz,.08+1.5*nz,(1.-a)*(1.-a));",          // more broken, feathered at the tail
+    "  v+=exp(-d*d)*feather*(1.-.25*fj);}",
+    " float halo=exp(-pow((y-yc)/(w*6.),2.))*.1*(1.-a*.6);",
+    " return env*(v*.55+halo)*min(sqrt(.007/w),1.4)*(.55+.45*breathe);}",
     "void main(){",
-    " float ar=r.x/r.y; vec2 p=vec2(gl_FragCoord.x/r.y,gl_FragCoord.y/r.y);",   // y: 0 bottom .. 1 top
-    " float tt=TAU*t/L; vec2 ring=vec2(cos(tt),sin(tt))*1.5;",
-    " vec3 pearl=vec3(.93,.95,1.); vec3 col=vec3(0.);",
-    " for(int i=0;i<" + N + ";i++){",
-    "  float fi=float(i);",
-    "  float k=6.+floor(h(vec2(fi,3.1))*5.);",                     // 6..10 lives per loop: 24-40 s each
-    "  float ph=h(vec2(fi,7.7));",
-    "  float cyc=k*t/L+ph; float c=mod(floor(cyc),k); float age=fract(cyc);",
-    "  float r1=h(vec2(fi*1.3+c,1.)),r2=h(vec2(c*2.1,fi+5.)),r3=h(vec2(fi+c*.7,9.)),r4=h(vec2(c+fi*3.3,2.));",
-    "  float life=smoothstep(0.,.25,age)*smoothstep(1.,.5,age);",  // fade in, then dissolve while climbing
-    "  float len=.18+.22*r4;",
-    "  float y0=-.05+.75*r2;",
-    "  float head=y0+(.32+.3*r3)*age+len*.5;",                      // slow rise: ~.01-.025 screen heights/s
-    "  float v=(head-p.y)/len;",                                     // 0 = top (dissolving), 1 = bottom (source)
-    "  if(v<0.||v>1.)continue;",
-    "  float lean=(r3-.5)*1.1;",                                     // 50-90 deg from horizontal, either side
-    "  float sway=(.012+.03*(1.-v))*sin(p.y*9.+tt*(3.+fi)+fi*2.)+.008*sin(p.y*23.-tt*5.+fi);",
-    "  float xc=.04*ar+r1*ar*.92+lean*(p.y-y0)+sway;",
-    "  float w=(.0025+.018*(1.-v)*(1.-v))*(.7+.6*age);",           // thin near the source, spreading as it rises
-    "  if(abs(p.x-xc)>w*9.)continue;",
-    "  float env=smoothstep(0.,.35,v)*smoothstep(1.,.7,v);",
-    "  float s=0.;",
-    "  for(int j=0;j<3;j++){float fj=float(j);",
-    "   float off=(fj-1.)*w*(1.2+3.5*(1.-v))*sin(p.y*6.+tt*(2.+fj)+fi+fj*2.);",
-    "   float d=(p.x-xc-off)/(w*(1.+.35*fj));",
-    "   float nz=n(vec2(d*.35+fi,p.y*9.+fj*5.)-ring)*(.4+.8*n(vec2(d*.8,p.y*26.-fj*3.)+ring.yx));",
-    "   s+=exp(-d*d)*(.15+1.3*nz)*(1.-.25*fj);}",
-    "  float halo=exp(-pow((p.x-xc)/(w*6.),2.))*.08;",
-    "  vec3 tint=mix(pal(h(vec2(fi,c+.5))),pearl,.3+.25*r4);",
-    "  col+=tint*env*life*(s*.5+halo)*min(sqrt(.006/w),1.4);",
-    " }",
-    " col*=.38;",
+    " vec2 q=gl_FragCoord.xy/r;",
+    " vec3 cy=vec3(0.,1.,1.),bl=vec3(.275,.72,1.),pu=vec3(.61,.30,1.),mg=vec3(.91,.235,.96),pearl=vec3(.93,.95,1.);",
+    " vec3 col=vec3(0.);",
+    //                                      k   y0   ph   slope  W    len  curl  m
+    //                                      k   y0   ph   slope  W    len  curl  m      (W*k/240 = speed, ~.025-.03 screens/s)
+    " col+=mix(cy,pearl,.45)*ribbon(q.x,q.y,5.,.24,0.,  .18, 1.5,.46,.02, 3.);",
+    " col+=mix(pu,pearl,.25)*ribbon(q.x,q.y,5.,.62,2.1,-.28, 1.45,.4, .03, 2.);",
+    " col+=mix(bl,pearl,.3) *ribbon(q.x,q.y,4.,.44,4.3, .04, 1.55,.5, .0, 4.)*.9;",
+    " #if " + RIB + " > 3",
+    " col+=mix(mg,pearl,.3) *ribbon(q.x,q.y,5.,.82,1.2,-.1, 1.4,.38,.025,3.);",
+    " col+=mix(cy,pu,.5)*ribbon(q.x,q.y,5.,.12,5.6, .3,  1.35,.34, .03, 5.)*.8;",
+    " #endif",
+    " col*=.6;",
     " col+=(h(gl_FragCoord.xy+fract(t*7.))-.5)/255.;",
     " gl_FragColor=vec4(max(col,0.),1.);}"
   ].join("\n");
