@@ -78,7 +78,7 @@ footer .cols{display:grid;grid-template-columns:2fr 1fr 1fr;gap:30px;max-width:1
 @keyframes vdrift{0%{transform:translate(0,0) rotate(0) scale(1)}50%{transform:translate(8vw,-5vh) rotate(20deg) scale(1.15)}100%{transform:translate(-6vw,6vh) rotate(-15deg) scale(.95)}}
 @media(prefers-reduced-motion:reduce){.vapor-css i{animation:none}#vapor{transition:none}}
 /* readability over the vapor: frosted dark cards, soft scrim behind text-only sections */
-.card,.step,details,.form,.loc{background:rgba(0,0,0,.42);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.card,.step,details,.form,.loc{-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
 .panel{-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
 main section:not(.hero):not(.head):not(.cta){position:relative}
 main section:not(.hero):not(.head):not(.cta):before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse 70% 80% at 50% 50%,rgba(0,0,0,.22),transparent 75%)}
