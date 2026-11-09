@@ -46,6 +46,7 @@ def page(path, title, desc, body, schema=None):
 <link rel="stylesheet" href="/assets/style.css">
 <script type="application/ld+json">{ld}</script>
 </head><body>
+<canvas id="vapor" aria-hidden="true"></canvas><div class="vapor-css" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
 <header class="top"><a class="brand" href="/"><span class="mark">VS</span> {E(S['name'])}</a>
 <nav>{nav}</nav><a class="btn small" href="/schedule-free-consult/">Free Consultation</a></header>
 <main>{body}</main>
@@ -54,6 +55,7 @@ def page(path, title, desc, body, schema=None):
 <div><b>Contact</b><br>{phones}<br><a href="mailto:{S['email']}">{S['email']}</a></div>
 <div><b>Pages</b><br>{'<br>'.join(f'<a href="{h}">{t}</a>' for h, t in NAV)}<br><a href="/schedule-free-consult/">Free Consultation</a></div></div>
 <p class="muted">© 2026 {E(S['name'])} · {E(S['legal'])}. All rights reserved. {social}</p></footer>
+<script src="/assets/vapor.js" defer></script>
 {chat}
 </body></html>"""
     d = os.path.join(OUT, path.strip("/"))
