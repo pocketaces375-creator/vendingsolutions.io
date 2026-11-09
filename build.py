@@ -57,6 +57,10 @@ def page(path, title, desc, body, schema=None):
 <p class="muted">© 2026 {E(S['name'])} · {E(S['legal'])}. All rights reserved. {social}</p></footer>
 <script src="/assets/vapor.js" defer></script>
 {chat}
+<script>/* auto-refresh: reloads this page when Claude updates it (Adam, Nov 9 2026). Checks every 5 s locally, 60 s on the web. */
+(()=>{{const local=/^(127\.|localhost|192\.168\.|10\.|100\.)/.test(location.hostname);let h;const hash=s=>{{let x=0;for(let i=0;i<s.length;i++)x=(x*31+s.charCodeAt(i))|0;return x}};
+setInterval(async()=>{{if(document.hidden)return;try{{const r=await fetch(location.href,{{cache:"no-store",credentials:"same-origin"}});if(!r.ok)return;const v=hash(await r.text());
+if(h===undefined){{h=v;return}}if(v!==h){{const a=document.activeElement;if(a&&/INPUT|TEXTAREA/.test(a.tagName)&&a.value)return;location.reload()}}}}catch(e){{}}}},local?5000:60000)}})();</script>
 </body></html>"""
     d = os.path.join(OUT, path.strip("/"))
     os.makedirs(d, exist_ok=True)
