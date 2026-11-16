@@ -184,7 +184,7 @@ document.getElementById("consult").addEventListener("submit", async (e) => {{
   try {{
     const r = await fetch("{S['api_base']}/cs/inquiry", {{method: "POST", headers: {{"Content-Type": "application/json"}}, body: JSON.stringify(d)}});
     if (!r.ok) throw new Error(r.status);
-    f.reset(); msg.textContent = "Thanks! We got it and will reach out within one business day.";
+    f.reset(); msg.textContent = "Thank you for reaching out! We'll be contacting you soon.";
   }} catch (err) {{
     msg.innerHTML = 'Something went wrong. Please call us or email <a href="mailto:{S['email']}">{S['email']}</a>.';
   }} finally {{ b.disabled = false; }}
